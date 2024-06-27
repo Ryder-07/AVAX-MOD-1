@@ -1,7 +1,6 @@
 # AVAX-PROOF-Module-1
-# DeFi Kingdom Clone on Avalanche
 
-Welcome to the thrilling world of blockchain-based gaming! This project is a DeFi Kingdom clone built on the Avalanche blockchain. Players can collect, build, and battle with digital assets, earning rewards through various in-game activities.
+Welcome to the AVAX-PROOF-Module-1 for the Metacrafters
 
 ## Getting Started
 
@@ -19,24 +18,65 @@ Welcome to the thrilling world of blockchain-based gaming! This project is a DeF
 
 3. Connect your EVM subnet to Metamask.
 
-| **SUBNET** | **CHAIN** | **CHAINID** | **VMID**                                          | **TYPE**    |
-|------------|-----------|-------------|---------------------------------------------------|-------------|
-| mySubnet   | mySubnet  | 12345567    | qDN9XsRy6efv5tZw3q2ngfQzQZJyMQJEF3d3Nu4YisNi9iR4G | Subnet-EVM  |
+
 
 ### Deploying Smart Contracts
 
 #### ERC20 Token Contract
 
-```solidity
-// ERC20.sol
+```
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
 contract ERC20 {
-    string public name = "GOPALYDY";
-    string public symbol = "GYD";
-    // ... (contract details)
+    uint public totalSupply;
+    mapping(address => uint) public balanceOf;
+    mapping(address => mapping(address => uint)) public allowance;
+    string public name = "RUDRATOKEN";
+    string public symbol = "RTN";
+    uint8 public decimals = 18;
+
+    event Transfer(address indexed from, address indexed to, uint value);
+    event Approval(address indexed owner, address indexed spender, uint value);
+
+    function transfer(address recipient, uint amount) external returns (bool) {
+        balanceOf[msg.sender] -= amount;
+        balanceOf[recipient] += amount;
+        emit Transfer(msg.sender, recipient, amount);
+        return true;
+    }
+
+    function approve(address spender, uint amount) external returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint amount
+    ) external returns (bool) {
+        allowance[sender][msg.sender] -= amount;
+        balanceOf[sender] -= amount;
+        balanceOf[recipient] += amount;
+        emit Transfer(sender, recipient, amount);
+        return true;
+    }
+
+    function mint(uint amount) external {
+        balanceOf[msg.sender] += amount;
+        totalSupply += amount;
+        emit Transfer(address(0), msg.sender, amount);
+    }
+
+    function burn(uint amount) external {
+        balanceOf[msg.sender] -= amount;
+        totalSupply -= amount;
+        emit Transfer(msg.sender, address(0), amount);
+    }
 }
+
 ```
 ### Functions
 
@@ -97,19 +137,61 @@ Compile and deploy this contract using Remix. Adjust parameters such as name, sy
 
 #### Vault Contract
 
-```solidity
-// Vault.sol
+```
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
 interface IERC20 {
-    // ... (ERC20 interface)
+    function totalSupply() external view returns (uint);
+    function balanceOf(address account) external view returns (uint);
+    function transfer(address recipient, uint amount) external returns (bool);
+    function allowance(address owner, address spender) external view returns (uint);
+    function approve(address spender, uint amount) external returns (bool);
+    function transferFrom(address sender, address recipient, uint amount) external returns (bool);
+
+    event Transfer(address indexed from, address indexed to, uint value);
+    event Approval(address indexed owner, address indexed spender, uint value);
 }
 
 contract Vault {
     IERC20 public immutable token;
-    // ... (Vault details)
+
+    uint public totalSupply;
+    mapping(address => uint) public balanceOf;
+
+    constructor(address _token) {
+        token = IERC20(_token);
+    }
+
+    function _mint(address _to, uint _shares) private {
+        totalSupply += _shares;
+        balanceOf[_to] += _shares;
+    }
+
+    function _burn(address _from, uint _shares) private {
+        totalSupply -= _shares;
+        balanceOf[_from] -= _shares;
+    }
+
+    function deposit(uint _amount) external {
+        uint shares;
+        if (totalSupply == 0) {
+            shares = _amount;
+        } else {
+            shares = (_amount * totalSupply) / token.balanceOf(address(this));
+        }
+
+        _mint(msg.sender, shares);
+        token.transferFrom(msg.sender, address(this), _amount);
+    }
+
+    function withdraw(uint _shares) external {
+        uint amount = (_shares * token.balanceOf(address(this))) / totalSupply;
+        _burn(msg.sender, _shares);
+        token.transfer(msg.sender, amount);
+    }
 }
+
 ```
 
 Deploy the Vault contract, ensuring you provide the address of the ERC20 token contract as a parameter.
@@ -118,8 +200,8 @@ Deploy the Vault contract, ensuring you provide the address of the ERC20 token c
 ```
 Network name : mySubnet
 New RPC URL : http://127.0.0.1:9650/ext/bc/MYp2AYrY5iZGADK17is2L9Lg34i99w3F5WVX2nccXeRwpDJ6v/rpc
-Chain ID : 12345567
-Currency symbol : MYSUBNET
+Chain ID : 313225
+Currency symbol : RYD
 ```
 ### Testing Your Application
 
@@ -127,10 +209,6 @@ Currency symbol : MYSUBNET
 2. Test functions like minting, burning, depositing, and withdrawing to simulate in-game activities.
 3. Confirm transactions on Metamask.
 
-## Author 
-- Gopal Yadav
 
-## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 
