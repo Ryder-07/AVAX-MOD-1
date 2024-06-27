@@ -5,8 +5,8 @@ contract ERC20 {
     uint public totalSupply;
     mapping(address => uint) public balanceOf;
     mapping(address => mapping(address => uint)) public allowance;
-    string public name = "GOPALYDY";
-    string public symbol = "GYD";
+    string public name = "RUDRATOKEN";
+    string public symbol = "RTN";
     uint8 public decimals = 18;
 
 		event Transfer(address indexed from, address indexed to, uint value);
